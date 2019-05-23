@@ -4,25 +4,45 @@ using UnityEngine;
 
 public class Person {
     private static readonly float initialResources = 1f;
-    private static readonly float maxWorkAbility = 1.6f;
-    private static readonly float minWorkAbility = 1.2f;
+    private static readonly float maxWorkAbility = 1.4f;
+    private static readonly float minWorkAbility = 1.1f;
     private static readonly float maxComAbility = 1f;
     private static readonly float minComAbility = .1f;
 
     /// <summary>
     /// time in seconds between two production actions
     /// </summary>
-    private static readonly float productionCycle = 10f;
+    public static readonly float productionCycle = 10f;
 
     private float resources;
     private float workAbility;
     private float comAbility;
+    private bool canSurvive = false;
+    private int id = 0;
 
     public float Resources { get => resources; }
     public float WorkAbility { get => workAbility; }
     public float ComAbility { get => comAbility; }
+    public bool CanSurvive {
+        get => canSurvive;
+        set => canSurvive = value;
+    }
+    public int ID {
+        get => id;
+        set => id = value;
+    }
 
-    public Person Collaborator { get; set; } = null;
+    private Person collaborator = null;
+    public Person Collaborator {
+        get => collaborator;
+    }
+
+    /// <summary>
+    /// used for json serialization
+    /// </summary>
+    public bool ShouldSerializeCollaborator() {
+        return false;
+    }
 
     public Person() {
         resources = initialResources;
@@ -43,7 +63,8 @@ public class Person {
     }
 
     public float AssessJointProduction(Person another) {
-        float lendRatio = Mathf.Max(comAbility, another.comAbility);
+        //float lendRatio = Mathf.Max(comAbility, another.comAbility);
+        float lendRatio = (comAbility + another.comAbility) / 2f;
 
         Person borrower, lender;
         if(workAbility >= another.workAbility) {
@@ -62,5 +83,26 @@ public class Person {
 
     private void MakeJointProduction(Person another) {
         resources = AssessJointProduction(another);
+
+        // clear current collaborator
+        collaborator = null;
+    }
+
+    public void MakeProduction() {
+        if(collaborator != null && collaborator.Collaborator == this) {
+            MakeJointProduction(collaborator);
+        }
+        else {
+            MakeIndieProduction();
+        }
+    }
+
+    public void SetCollaborator(Person another) {
+        if(collaborator == null) {
+            collaborator = another;
+        }
+        else if(AssessJointProduction(another) > AssessJointProduction(collaborator)) {
+            collaborator = another;
+        }
     }
 }

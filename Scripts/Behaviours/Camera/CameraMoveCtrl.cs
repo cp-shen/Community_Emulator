@@ -15,11 +15,11 @@ public class CameraMoveCtrl : MonoBehaviour
         initPosition = transform.position;
     }
 
-    private void ResetPosition() {
+    public void ResetPosition() {
         transform.position = initPosition;
     }
 
-    private void ResetRotation() {
+    public void ResetRotation() {
         rotX = rotY = 0f;
     }
 
@@ -52,11 +52,6 @@ public class CameraMoveCtrl : MonoBehaviour
 
     void LateUpdate() {
         MoveByKeys();
-
-        if(Input.GetKeyDown(KeyCode.R)) {
-            ResetPosition();
-            ResetRotation();
-        }
     }
 
     private void OnDisable() {

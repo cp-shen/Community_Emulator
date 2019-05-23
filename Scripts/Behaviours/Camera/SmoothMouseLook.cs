@@ -116,6 +116,12 @@ public class SmoothMouseLook : MonoBehaviour {
     }
 
     private void OnDisable() {
+        ResetRotation();
+    }
+
+    public void ResetRotation() {
         transform.localRotation = originalRotation;
+        rotationX = 0f;
+        rotationY = 0f;
     }
 }
