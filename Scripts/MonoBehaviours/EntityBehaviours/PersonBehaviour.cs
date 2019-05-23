@@ -34,8 +34,10 @@ public class PersonBehaviour : MonoBehaviour {
     }
 
     private void OnCollisionEnter(Collision collision) {
-        if (GameState == GameController.GameStateEnum.Running && collision.gameObject.CompareTag("Player")) {
-            var p= collision.gameObject.GetComponent<PersonBehaviour>();
+        if (GameState == GameController.GameStateEnum.Running
+            && collision.gameObject.CompareTag("Player")) {
+
+            var p = collision.gameObject.GetComponent<PersonBehaviour>();
             if(p != null) {
                 SetCollaborator(p);
             }

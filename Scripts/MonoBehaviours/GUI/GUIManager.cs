@@ -147,7 +147,7 @@ public class GUIManager : MonoBehaviour
             + "Mix Time: " + gameController.MixTime + lb
             + "Total Prod Time: " + gameController.TotalProdTime + lb
             + "Production Cycle: " + Person.productionInterval + lb
-            + "Init Resources" + Person.initialResources + lb;
+            + "Init Resources: " + Person.initialResources + lb;
     }
 
     private void UpdateGUIComponents() {

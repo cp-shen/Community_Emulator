@@ -91,7 +91,8 @@ public class Person {
             lender = this;
         }
 
-        float benefit = lender.resources * lendRatio * (borrower.workAbility - lender.workAbility);
+        //float benefit = lender.resources * lendRatio * (borrower.workAbility - lender.workAbility);
+        float benefit = 0f;
 
         return AssessIndieProduction() + benefit * comAbility / (comAbility + another.comAbility);
     }
@@ -128,9 +129,9 @@ public class Person {
         if(collaborator == null) {
             collaborator = another;
         }
-        else if(AssessJointProduction(another) > AssessJointProduction(collaborator)) {
-            collaborator = another;
-        }
+        //else if(AssessJointProduction(another) > AssessJointProduction(collaborator)) {
+        //    collaborator = another;
+        //}
     }
 
     private static void ValidateArgs() {
