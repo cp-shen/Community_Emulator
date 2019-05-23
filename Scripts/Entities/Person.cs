@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Person {
-    private static readonly float initialResources = 1f;
-    private static readonly float maxWorkAbility = 1.4f;
-    private static readonly float minWorkAbility = 1.1f;
-    private static readonly float maxComAbility = 1f;
-    private static readonly float minComAbility = .1f;
+    public static float initialResources = 1f;
+    public static float maxWorkAbility = 1.2f;
+    public static float minWorkAbility = 1.1f;
+    public static float maxComAbility = 1f;
+    public static float minComAbility = .1f;
 
     /// <summary>
     /// time in seconds between two production actions
     /// </summary>
-    public static readonly float productionCycle = 10f;
+    public static float productionInterval = 10f;
 
     private float resources;
     private float workAbility;
@@ -37,6 +37,11 @@ public class Person {
         get => collaborator;
     }
 
+    private readonly List<ProductioRecord> productions = new List<ProductioRecord>();
+    public List<ProductioRecord> Productions {
+        get => productions;
+    }
+
     /// <summary>
     /// used for json serialization
     /// </summary>
@@ -45,6 +50,8 @@ public class Person {
     }
 
     public Person() {
+        ValidateArgs();
+
         resources = initialResources;
 
         // random between 0f and 1f and has one decimal digit
@@ -59,7 +66,15 @@ public class Person {
     }
 
     private void MakeIndieProduction() {
-        resources = AssessIndieProduction();
+        ProductioRecord pr = new ProductioRecord() {
+            PersonA = this.id,
+            ResourcesFormerA = resources,
+            ResourcesNewA = AssessIndieProduction(),
+            Time = Time.timeSinceLevelLoad,
+        };
+
+        resources = pr.ResourcesNewA;
+        productions.Add(pr);
     }
 
     public float AssessJointProduction(Person another) {
@@ -78,11 +93,23 @@ public class Person {
 
         float benefit = lender.resources * lendRatio * (borrower.workAbility - lender.workAbility);
 
-        return AssessIndieProduction() + benefit / 2;
+        return AssessIndieProduction() + benefit * comAbility / (comAbility + another.comAbility);
     }
 
     private void MakeJointProduction(Person another) {
-        resources = AssessJointProduction(another);
+        ProductioRecord pr = new ProductioRecord() {
+            PersonA = this.id,
+            PersonB = another.id,
+            ResourcesFormerA = resources,
+            ResourcesFormerB = another.Resources,
+            ResourcesNewA = AssessJointProduction(another),
+            ResourcesNewB = another.AssessJointProduction(this),
+            Time = Time.timeSinceLevelLoad,
+            IsJointProduction = true,
+        };
+
+        resources = pr.ResourcesNewA;
+        productions.Add(pr);
 
         // clear current collaborator
         collaborator = null;
@@ -103,6 +130,20 @@ public class Person {
         }
         else if(AssessJointProduction(another) > AssessJointProduction(collaborator)) {
             collaborator = another;
+        }
+    }
+
+    private static void ValidateArgs() {
+
+        if (
+            initialResources < 0f ||
+            minWorkAbility < 0f ||
+            minComAbility < 0f ||
+            maxWorkAbility < minWorkAbility ||
+            maxComAbility < minComAbility ||
+            productionInterval < 0f
+        ){
+            throw new System.ArgumentException("Person static args is illegal");
         }
     }
 }

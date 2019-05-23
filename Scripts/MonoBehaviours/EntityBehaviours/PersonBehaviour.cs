@@ -8,13 +8,13 @@ public class PersonBehaviour : MonoBehaviour {
         get => person;
     }
 
-    private GameController.GameState GameState {
+    private GameController.GameStateEnum GameState {
         get {
             if(gc != null) {
-                return gc.GameSate;
+                return gc.GameState;
             }
             else {
-                return GameController.GameState.Waiting;
+                return GameController.GameStateEnum.Waiting;
             }
         }
     }
@@ -34,7 +34,7 @@ public class PersonBehaviour : MonoBehaviour {
     }
 
     private void OnCollisionEnter(Collision collision) {
-        if (GameState == GameController.GameState.Running && collision.gameObject.CompareTag("Player")) {
+        if (GameState == GameController.GameStateEnum.Running && collision.gameObject.CompareTag("Player")) {
             var p= collision.gameObject.GetComponent<PersonBehaviour>();
             if(p != null) {
                 SetCollaborator(p);

@@ -6,22 +6,19 @@ using UnityEngine.UI;
 /// <summary>
 /// should be an singleton
 /// </summary>
+[RequireComponent(typeof(GUIManager))]
 public class GameController : MonoBehaviour
 {
-    // UI components
-    [SerializeField] private Button btn;
-    [SerializeField] private InputField inputField;
-    [SerializeField] private Text stateText;
-    [SerializeField] private Text timeText;
+    private GUIManager guiManager;
 
-    public enum GameState {
+    public enum GameStateEnum {
         Waiting,
         Mixing,
         Running,
     }
 
-    [SerializeField] private GameState gameState = GameState.Waiting;
-    public GameState GameSate { get => gameState; }
+    [SerializeField] private GameStateEnum gameState = GameStateEnum.Waiting;
+    public GameStateEnum GameState { get => gameState; }
 
     [SerializeField] private CameraMoveCtrl camMove;
     [SerializeField] private SmoothMouseLook mouseLook;
@@ -35,12 +32,22 @@ public class GameController : MonoBehaviour
     /// <summary>
     /// total time in seconds in one game
     /// </summary>
-    [SerializeField] private float totalProductionTime = 101f;
+    [SerializeField] private float totalProdTime = 101f;
+    public float TotalProdTime {
+        get => totalProdTime;
+        set => totalProdTime = value;
+    }
+
     [SerializeField] private float mixTime = 15f;
+    public float MixTime {
+        get => mixTime;
+        set => mixTime = value;
+    }
 
     private float timeRemain;
+    public float TimeRemain { get => timeRemain; }
 
-    private float Cycle { get => Person.productionCycle; }
+    private float Cycle { get => Person.productionInterval; }
 
     private readonly List<PersonBehaviour> persons = new List<PersonBehaviour>();
 
@@ -52,15 +59,19 @@ public class GameController : MonoBehaviour
             GameObject g = Instantiate(personObj);
             PersonBehaviour p = g.GetComponent<PersonBehaviour>();
             if(p != null) {
-                // ID begins from 0
-                p.Person.ID = persons.Count;
                 persons.Add(p);
+                // ID from 1 to maxCount
+                p.Person.ID = persons.Count;
             }
         }
     }
 
     private void SpawnMultiple(int count) {
-        count = Mathf.Clamp(count, 0, maxCount);
+        if(count <= 0) {
+            throw new System.ArgumentException("spawn count should larger than 0");
+        }
+
+        count = Mathf.Clamp(count, 1, maxCount);
         for(int i = 0; i < count; i++) {
             Spawn();
         }
@@ -72,28 +83,15 @@ public class GameController : MonoBehaviour
         }
     }
 
-    /// <exception cref="System.Exception">
-    /// failed to spawn persons
-    /// </exception>
-    private void SpawnByInputField() {
-        int count = int.Parse(inputField.text);
-        SpawnMultiple(count);
-    }
     #endregion
 
     #region Unity Callbacks
     private void Start() {
-        SetupGUIComponents();
-        SetupGUIEvents();
+        timeRemain = totalProdTime;
 
-        timeRemain = totalProductionTime;
-
+        guiManager = GetComponent<GUIManager>();
     }
 
-    private void OnDestroy() {
-        RemoveGUIEvents();
-
-    }
     private void Update() {
         // pause or reset game by keys
         if (Input.GetKeyDown(KeyCode.Q)) {
@@ -107,10 +105,9 @@ public class GameController : MonoBehaviour
 
         SetCursorState();
         SetCamState();
-        UpdateGUIComponents();
 
         // Update time counter
-        if(gameState == GameState.Running) {
+        if(gameState == GameStateEnum.Running) {
             if (timeRemain > 0f) {
                 if(timeRemain > Cycle && readyForProduction) {
                     StartCoroutine(MakeProduction());
@@ -124,57 +121,10 @@ public class GameController : MonoBehaviour
     }
     #endregion
 
-    #region GUI functions
-
-    private void SetupGUIComponents() {
-        inputField.contentType = InputField.ContentType.IntegerNumber;
-    }
-
-    private void SetupGUIEvents() {
-        if(btn != null) {
-            btn.onClick.AddListener(StartGame);
-        }
-    }
-
-    private void RemoveGUIEvents() {
-        if(btn != null) {
-            btn.onClick.RemoveListener(StartGame);
-        }
-    }
-    
-    private void UpdateTimeText() {
-        if(timeText != null) {
-            timeText.text = "Time Remain: " + timeRemain;
-        }
-    }
-
-    private void UpdateGameStateText() {
-        if (stateText == null) {
-            return;
-        }
-        stateText.text = "GameState: " + gameState;
-
-        //switch (gameState) {
-        //    case GameState.Waiting:
-        //        stateText.text = "GameState: ";
-        //        break;
-        //    case GameState.Running:
-        //        stateText.text = "GameState: ";
-        //        break;
-        //    case GameState.Mixing:
-        //        stateText.text = "GameState: ";
-        //        break;
-        //}
-    }
-    private void UpdateGUIComponents() {
-        UpdateTimeText();
-        UpdateGameStateText();
-    }
-    #endregion
 
     private void SetCursorState() {
         switch (gameState) {
-            case GameState.Waiting:
+            case GameStateEnum.Waiting:
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
                 break;
@@ -187,7 +137,7 @@ public class GameController : MonoBehaviour
 
     private void SetCamState() {
         switch (gameState) {
-            case GameState.Waiting:
+            case GameStateEnum.Waiting:
                 if(camMove != null) {
                     camMove.enabled = false;
                 }
@@ -219,8 +169,8 @@ public class GameController : MonoBehaviour
     /// Reset game state and game time
     /// </summary>
     private void EndGame() {
-        gameState = GameState.Waiting;
-        timeRemain = totalProductionTime;
+        gameState = GameStateEnum.Waiting;
+        timeRemain = totalProdTime;
 
         SetSurviveState();
         WriteLog();
@@ -230,9 +180,9 @@ public class GameController : MonoBehaviour
     /// <summary>
     /// Spawn persons and set game state
     /// </summary>
-    private void StartGame() {
+    public void StartGame() {
         try {
-            SpawnByInputField();
+            SpawnMultiple(guiManager.SpawnCount);
             StartCoroutine(MixPersons());
         }
         catch (System.Exception e) {
@@ -263,9 +213,9 @@ public class GameController : MonoBehaviour
     /// After mixing, set gameState to running
     /// </summary>
     private IEnumerator MixPersons() {
-        gameState = GameState.Mixing;
+        gameState = GameStateEnum.Mixing;
         yield return new WaitForSeconds(mixTime);
-        gameState = GameState.Running;
+        gameState = GameStateEnum.Running;
     }
 
     private void SetSurviveState() {
