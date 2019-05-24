@@ -25,6 +25,7 @@ public class GUIManager : MonoBehaviour
     [SerializeField] private InputField totalProdInput;
     [SerializeField] private InputField intervalInput;
     [SerializeField] private InputField initResInput;
+    [SerializeField] private InputField maxProdCountInput;
 
     public int SpawnCount {
         get {
@@ -58,6 +59,8 @@ public class GUIManager : MonoBehaviour
         totalProdInput.contentType = InputField.ContentType.DecimalNumber;
         intervalInput.contentType = InputField.ContentType.DecimalNumber;
         initResInput.contentType = InputField.ContentType.DecimalNumber;
+
+        maxProdCountInput.contentType = InputField.ContentType.IntegerNumber;
     }
 
     void Update() {
@@ -81,10 +84,12 @@ public class GUIManager : MonoBehaviour
         maxComInput.text = Person.maxComAbility.ToString();
         minWorkInput.text = Person.minWorkAbility.ToString();
         maxWorkInput.text = Person.maxWorkAbility.ToString();
+
         mixTimeInput.text = gameController.MixTime.ToString();
         totalProdInput.text = gameController.TotalProdTime.ToString();
         intervalInput.text = Person.productionInterval.ToString();
         initResInput.text = Person.initialResources.ToString();
+        maxProdCountInput.text = Person.maxProdCount.ToString();
     }
 
     private void SetArgs() {
@@ -97,6 +102,7 @@ public class GUIManager : MonoBehaviour
         var totalProdTime = float.Parse(totalProdInput.text);
         var productionInterval = float.Parse(intervalInput.text);
         var initialResources = float.Parse(initResInput.text);
+        var maxProdCount = int.Parse(maxProdCountInput.text);
 
         // validate before settings
         if (
@@ -108,7 +114,8 @@ public class GUIManager : MonoBehaviour
             mixTime < 0f ||
             totalProdTime < 0f ||
             productionInterval < 0f ||
-            initialResources < 0f
+            initialResources < 0f ||
+            maxProdCount < 0
         ){
             throw new System.ArgumentException("Person static args is illegal");
         }
@@ -117,10 +124,12 @@ public class GUIManager : MonoBehaviour
         Person.maxComAbility = maxComAbility;
         Person.minWorkAbility = minWorkAbility;
         Person.maxWorkAbility = maxWorkAbility;
+
         gameController.MixTime = mixTime;
         gameController.TotalProdTime = totalProdTime;
         Person.productionInterval = productionInterval;
         Person.initialResources = initialResources;
+        Person.maxProdCount = maxProdCount;
     }
 
     private void UpdateTimeText() {
@@ -146,8 +155,10 @@ public class GUIManager : MonoBehaviour
             + "Max Work: " + Person.maxWorkAbility + lb
             + "Mix Time: " + gameController.MixTime + lb
             + "Total Prod Time: " + gameController.TotalProdTime + lb
-            + "Production Cycle: " + Person.productionInterval + lb
-            + "Init Resources: " + Person.initialResources + lb;
+            + "Production Interval: " + Person.productionInterval + lb
+            + "Init Resources: " + Person.initialResources + lb 
+            + "Max Person Count: " + gameController.MaxCount + lb
+            + "Max Prod Count: " + Person.maxProdCount + lb;
     }
 
     private void UpdateGUIComponents() {

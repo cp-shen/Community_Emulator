@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 
+[JsonObject()]
 public class ProductioRecord {
     /// <summary>
     /// ID of person A, 0 means null

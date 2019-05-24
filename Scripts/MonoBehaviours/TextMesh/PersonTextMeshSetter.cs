@@ -6,7 +6,7 @@ public class PersonTextMeshSetter : BaseTextMeshSetter
 {
     private Person person;
     protected override string StringToDisplay {
-        get => person.Resources.ToString();
+        get => person.Resources.ToString("0.00");
     }
 
     protected override void Start() {

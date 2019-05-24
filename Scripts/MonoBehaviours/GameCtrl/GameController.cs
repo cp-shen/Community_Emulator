@@ -23,6 +23,9 @@ public class GameController : MonoBehaviour
     [SerializeField] private CameraMoveCtrl camMove;
     [SerializeField] private SmoothMouseLook mouseLook;
     [SerializeField] private int maxCount = 200;
+    public int MaxCount {
+        get => maxCount;
+    }
         
     /// <summary>
     /// GameObject to spawn
@@ -109,9 +112,9 @@ public class GameController : MonoBehaviour
         // Update time counter
         if(gameState == GameStateEnum.Running) {
             if (timeRemain > 0f) {
-                if(timeRemain > Cycle && readyForProduction) {
-                    StartCoroutine(MakeProduction());
-                }
+                //if(timeRemain > Cycle && readyForProduction) {
+                //    StartCoroutine(MakeProduction());
+                //}
                 timeRemain -= Time.deltaTime;
             }
             else {
@@ -226,7 +229,7 @@ public class GameController : MonoBehaviour
         avg = avg / (float) persons.Count;
 
         foreach(PersonBehaviour p in persons) {
-            if(p.Person.Resources > avg) {
+            if(p.Person.Resources >= avg) {
                 p.Person.CanSurvive = true;
             }
             else {

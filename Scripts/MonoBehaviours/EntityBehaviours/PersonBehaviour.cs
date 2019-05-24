@@ -37,9 +37,14 @@ public class PersonBehaviour : MonoBehaviour {
         if (GameState == GameController.GameStateEnum.Running
             && collision.gameObject.CompareTag("Player")) {
 
+            //Debug.Log("Person Collision Enter");
+
             var p = collision.gameObject.GetComponent<PersonBehaviour>();
             if(p != null) {
-                SetCollaborator(p);
+                //SetCollaborator(p);
+                //p.SetCollaborator(this);
+
+                person.MakeJointProduction(p.person);
             }
         }
     }

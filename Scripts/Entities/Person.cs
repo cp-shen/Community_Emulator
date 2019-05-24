@@ -1,13 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 
+[JsonObject(MemberSerialization.OptOut)]
 public class Person {
     public static float initialResources = 1f;
     public static float maxWorkAbility = 1.2f;
     public static float minWorkAbility = 1.1f;
     public static float maxComAbility = 1f;
     public static float minComAbility = .1f;
+    public static int maxProdCount = 50;
 
     /// <summary>
     /// time in seconds between two production actions
@@ -33,7 +36,7 @@ public class Person {
     }
 
     private Person collaborator = null;
-    public Person Collaborator {
+    [JsonIgnore] public Person Collaborator {
         get => collaborator;
     }
 
@@ -42,11 +45,9 @@ public class Person {
         get => productions;
     }
 
-    /// <summary>
-    /// used for json serialization
-    /// </summary>
-    public bool ShouldSerializeCollaborator() {
-        return false;
+    private readonly Dictionary<Person, float> borrowedRes = new Dictionary<Person, float>();
+    [JsonIgnore] public Dictionary<Person, float> BorrowedRes {
+        get => borrowedRes;
     }
 
     public Person() {
@@ -66,6 +67,10 @@ public class Person {
     }
 
     private void MakeIndieProduction() {
+        if(Productions.Count == maxProdCount) {
+            return;
+        }
+
         ProductioRecord pr = new ProductioRecord() {
             PersonA = this.id,
             ResourcesFormerA = resources,
@@ -75,6 +80,9 @@ public class Person {
 
         resources = pr.ResourcesNewA;
         productions.Add(pr);
+
+        // clear current collaborator
+        collaborator = null;
     }
 
     public float AssessJointProduction(Person another) {
@@ -91,13 +99,17 @@ public class Person {
             lender = this;
         }
 
-        //float benefit = lender.resources * lendRatio * (borrower.workAbility - lender.workAbility);
-        float benefit = 0f;
+        float benefit = lender.resources * lendRatio * (borrower.workAbility - lender.workAbility);
+        //float benefit = 0f;
 
         return AssessIndieProduction() + benefit * comAbility / (comAbility + another.comAbility);
     }
 
-    private void MakeJointProduction(Person another) {
+    public void MakeJointProduction(Person another) {
+        if(Productions.Count == maxProdCount) {
+            return;
+        }
+
         ProductioRecord pr = new ProductioRecord() {
             PersonA = this.id,
             PersonB = another.id,
@@ -117,7 +129,8 @@ public class Person {
     }
 
     public void MakeProduction() {
-        if(collaborator != null && collaborator.Collaborator == this) {
+        //if(collaborator != null && collaborator.Collaborator == this) {
+        if(collaborator != null ) {
             MakeJointProduction(collaborator);
         }
         else {
@@ -126,9 +139,10 @@ public class Person {
     }
 
     public void SetCollaborator(Person another) {
-        if(collaborator == null) {
-            collaborator = another;
-        }
+        collaborator = another;
+        //if(collaborator == null) {
+        //    collaborator = another;
+        //}
         //else if(AssessJointProduction(another) > AssessJointProduction(collaborator)) {
         //    collaborator = another;
         //}
@@ -146,5 +160,28 @@ public class Person {
         ){
             throw new System.ArgumentException("Person static args is illegal");
         }
+    }
+
+    public void BorrowRes(Person another) {
+        if(comAbility <= another.comAbility) {
+            return;
+        }
+
+        float ratio = comAbility - another.comAbility;
+        float borrowed = another.resources * ratio;
+
+        another.resources -= borrowed;
+        resources += borrowed;
+
+        borrowedRes.Add(another, borrowed);
+    }
+
+    public void ReturnBorrowed() {
+        foreach(Person p in borrowedRes.Keys) {
+            p.resources += borrowedRes[p];
+            resources -= borrowedRes[p];
+        }
+
+        borrowedRes.Clear();
     }
 }
