@@ -23,30 +23,30 @@ And the stonger one ability is, the weaker another ability will be.
 
 ## 3. Production loop
 
-After the time of one cycle, the production action will happen, which is assumed not to take any time.
+When two spheres collides with each other, the production action will happen, which is assumed not to take any time.
 
-After producing, each person will have a new amount of resources, which is decieded by his original resources and his work ability.
+After producing, each person will have a new amount of resources, which is decieded by their original resources and their abilities.
 
-```resources_new = resources_input * ability_work```
+There is an upper limit of times of production for each person.
 
 ## 4. Joint production
 
-During the interval of two production actions,  
-a person can sign joint productipn plans with the persons he meets,  
-and only one best plan will be choosed.
+When production happens, the person with weaker work ability can lend part of his resources to the person with stronger work ability.
 
-When joint production happens, the person with weaker work ability can lend part of his resources to the person with stronger work ability.
+The ratio of lend amount is decided by average of two people's communicating ability.
 
-The ratio of lend amount is decided by maximum of two people's communicating ability.
+By lending resources, an amount of benefit will be generated.
 
-After joint production, The borrower first returns the amount of resources which equals to the output which the lender will get if using the lent part in producton.
+And each of two persons will get part of the benefit.
 
-Then the borrower returns half of what he gets additionally by doing this joint producion (half of the benefit).
+The stronger a person's communicating ability is, the larger part of benefit he will get.
 
 ```c#
-resources_lent = resources_lender * max(ability_communicate_lender, ability_communicate_borrower);
+resources_lent = resources_lender * average(ability_communicate_lender, ability_communicate_borrower);
 
 benefit = resources_lent * (ability_work_borrower - ability_work_lender);
+
+resources_new_A = resources_old_A * ability_work_A + benefit * ability_com_A / (ability_com_A + ability_com_B);
 ```
 
 ## 5. End of the loop
