@@ -106,12 +106,25 @@ public class Person {
     }
 
     public void MakeJointProduction(Person another) {
-        if(Productions.Count == maxProdCount) {
+        // check production count
+        if(Productions.Count == maxProdCount || another.Productions.Count == maxProdCount) {
             return;
+        }
+        
+        // check production timestamp
+        foreach(var p in Productions) {
+            if(p.Time == Time.timeSinceLevelLoad) {
+                return;
+            }
+        }
+        foreach(var p in another.Productions) {
+            if(p.Time == Time.timeSinceLevelLoad) {
+                return;
+            }
         }
 
         ProductioRecord pr = new ProductioRecord() {
-            PersonA = this.id,
+            PersonA = id,
             PersonB = another.id,
             ResourcesFormerA = resources,
             ResourcesFormerB = another.Resources,
@@ -122,10 +135,14 @@ public class Person {
         };
 
         resources = pr.ResourcesNewA;
+        another.resources = pr.ResourcesNewB;
+
         productions.Add(pr);
+        another.productions.Add(pr);
 
         // clear current collaborator
         collaborator = null;
+        another.collaborator = null;
     }
 
     public void MakeProduction() {

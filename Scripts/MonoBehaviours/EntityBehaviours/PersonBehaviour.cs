@@ -41,8 +41,6 @@ public class PersonBehaviour : MonoBehaviour {
 
             var p = collision.gameObject.GetComponent<PersonBehaviour>();
             if(p != null) {
-                //SetCollaborator(p);
-                //p.SetCollaborator(this);
 
                 person.MakeJointProduction(p.person);
             }
